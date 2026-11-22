@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: api-gateway
+
+server:
+  port: 8080
+
+gateway:
+  routes:
+    - id: user
+      path-prefix: /api/user
+      target: http://localhost:8081
+      strip-prefix: true
+    - id: orders
+      path-prefix: /api/order
+      target: http://localhost:8082
+      strip-prefix: true
