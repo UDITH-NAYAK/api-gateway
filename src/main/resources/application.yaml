@@ -15,3 +15,21 @@ gateway:
       path-prefix: /api/order
       target: http://localhost:8082
       strip-prefix: true
+routes:
+  - id: users
+    match:
+      path-prefix: /api/users
+      methods: [GET, POST, PUT, DELETE]   # optional; default all
+      host: null                          # optional
+    strip-prefix: true
+    targets:
+      - { url: http://localhost:8081, weight: 1 }
+      - { url: http://localhost:8082, weight: 1 }
+    balancer: round-robin                 # round-robin | weighted | least-outstanding
+    auth: { mode: JWT, scopes: [users.read] }   # NONE | JWT | API_KEY | JWT_OR_API_KEY
+    rate-limit: { capacity: 100, refill-per-sec: 50, key: USER, on-redis-failure: FAIL_OPEN }
+    timeout: { connect-ms: 1000, response-ms: 3000 }
+    retry: { max-attempts: 2, backoff-ms: 100, budget-percent: 10 }
+    circuit-breaker: { failure-rate-percent: 50, window-size: 20, min-calls: 10, open-ms: 10000, half-open-calls: 3 }
+    bulkhead: { max-concurrent: 200 }
+    health-check: { path: /actuator/health, interval-ms: 5000, fail-threshold: 3, success-threshold: 2 }
